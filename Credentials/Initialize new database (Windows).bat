@@ -8,7 +8,10 @@ set KeePass=%~dp0KeePass-Windows\KeePass.exe
 set KPScript=KeePass-Windows\KPScript.exe
 :SelectParent
 echo The parent database is a database whose entries should be accessible to
-echo any child database
+echo any child database. If database "B" has database "A" as a parent, when
+echo database "B" is opened, database "A" will be accessible too.
+echo When creating a personal database the best option is to choose your 
+echo inmediate team or subteam.
 setlocal enabledelayedexpansion
 set N=1
 for %%i in (*.kdbx) do (
@@ -86,7 +89,7 @@ if exist %new_db% (
     goto :CreateDatabase
 )
 :CreateDatabase
-set /p pw=New database password: 
+set /p pw=!new_db_name! database password: 
 if "%pw%"=="" (
     echo You must introduce a password
     goto :CreateDatabase
@@ -98,7 +101,7 @@ echo %new_db%
 :: Add key
 if "%parent%" NEQ "" (
     set parent_url=../!parent!.kdbx
-    %KPScript% -c:AddEntry %new_db% -pw:"%pw%" -GroupName:"AutoOpen" -Title:%parent% -Password:%parent_pw% -URL:%parent_url%
+    %KPScript% -c:AddEntry %new_db% -pw:"%pw%" -GroupName:"AutoOpen" -Title:%parent% -Password:%parent_pw% -URL:!parent_url!
     %KPScript% -c:EditEntry %new_db% -pw:"%pw%" -refx-Group:"AutoOpen" -ref-Title:%parent% -set-Focus:Restore>nul
 )
 choice /M "Do you want to create a shortcut to the new database in the Desktop folder (Recommended)"
