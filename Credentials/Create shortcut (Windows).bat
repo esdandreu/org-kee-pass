@@ -22,6 +22,10 @@ for %%i in (..\*.kdbx) do (
     set /a N+=1
 )
 set /a N-=1
+if %N% LEQ 1 (
+    echo No available databases
+    goto :Exit
+)
 set choices=
 for /l %%i in (1,1,!N!) do set choices=!choices!%%i
 choice /C %choices% /M "For which database do you need a shortcut"
@@ -30,10 +34,11 @@ set database_name=!database_names[%database%]!
 set database=!databases[%database%]!
 echo Selected "%database_name%"
 :CreateShortcut
+for /f "usebackq tokens=2,3*" %%A in (`REG QUERY "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "Desktop"`) do if %%A==REG_SZ  set DESKTOP=%%B
 :: Create the .lnk file in the desktop using a temporal VBA script
 set SCRIPT="%~dp0%RANDOM%-%RANDOM%-%RANDOM%-%RANDOM%.vbs"
 echo Set oWS = WScript.CreateObject("WScript.Shell") >> %SCRIPT%
-echo sLinkFile = "%USERPROFILE%\Desktop\%database_name%.lnk" >> %SCRIPT%
+echo sLinkFile = "%DESKTOP%\%database_name%.lnk" >> %SCRIPT%
 echo Set oLink = oWS.CreateShortcut(sLinkFile) >> %SCRIPT%
 echo oLink.TargetPath = "%KeePass%" >> %SCRIPT%
 echo oLink.Arguments = """%~dp0%database%""" >> %SCRIPT%
@@ -44,7 +49,7 @@ del %SCRIPT%
 :: Check if the shortcut was created correctly
 if %ERRORLEVEL% == 0 (
     echo Shortcut created in: 
-    echo %USERPROFILE%\Desktop
+    echo %DESKTOP%
 ) else (
     choice /M "Failed shortcut creation, try again "
     if !ERRORLEVEL!==1 (

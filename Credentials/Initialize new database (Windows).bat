@@ -111,10 +111,11 @@ if !ERRORLEVEL!==1 (
     goto :Exit
 )
 :CreateShortcut
+for /f "usebackq tokens=2,3*" %%A in (`REG QUERY "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "Desktop"`) do if %%A==REG_SZ  set DESKTOP=%%B
 :: Create the .lnk file in the desktop using a temporal VBA script
 set SCRIPT="%~dp0%RANDOM%-%RANDOM%-%RANDOM%-%RANDOM%.vbs"
 echo Set oWS = WScript.CreateObject("WScript.Shell") >> %SCRIPT%
-echo sLinkFile = "%USERPROFILE%\Desktop\%new_db_name%.lnk" >> %SCRIPT%
+echo sLinkFile = "%DESKTOP%\%new_db_name%.lnk" >> %SCRIPT%
 echo Set oLink = oWS.CreateShortcut(sLinkFile) >> %SCRIPT%
 echo oLink.TargetPath = "%KeePass%" >> %SCRIPT%
 echo oLink.Arguments = ""%new_db%"" >> %SCRIPT%
@@ -125,7 +126,7 @@ del %SCRIPT%
 :: Check if the shortcut was created correctly
 if %ERRORLEVEL% == 0 (
     echo Shortcut created in: 
-    echo %USERPROFILE%\Desktop
+    echo %DESKTOP%
 ) else (
     choice /M "Failed shortcut creation, try again "
     if !ERRORLEVEL!==1 (
